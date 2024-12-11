@@ -9,7 +9,7 @@ import chromadb
 from langchain_core.documents import Document
 from uuid import uuid4
 
-os.environ["OPENAI_API_KEY"] = "s-proj-9MeKJmUbYsF14kHT3NITkbzsHI1OHJyeeEi0glyggGk3qdmQHPY2S_Jk9pvU28ToZqT3BlbUjF76Yn73FoVFFlmh6gQdX47-p8JQL4oSOPaD9zVr9B0terf7n7qscYA"
+os.environ["OPENAI_API_KEY"] = "_Jk9pvU28ToZqT3BlbkFJI9y6BNaUjF76Yn73FoVFFlmh6gQdX47-p8JQL4oSOPaD9zVr9B0terNnm9g7K_f2-f7n7qscYA"
 
 pdf_url = "/Users/satish/Downloads/digital-leader.pdf"
 loader = PyPDFLoader(pdf_url)
@@ -93,7 +93,7 @@ import chromadb
 from langchain_core.documents import Document
 from uuid import uuid4
 
-os.environ["OPENAI_API_KEY"] = "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"
+os.environ["OPENAI_API_KEY"] = "skMeKJmUbYsFU86E14kHT3NITkbzn73FoVFFlmh6gQdX47-p8JQL4oSOPaD9zVr9B0terNnm9g7K_f2-f7n7qscYA"
 
 embeddings = OpenAIEmbeddings(model="text-embedding-3-large")
 
@@ -114,6 +114,7 @@ vectordb = Chroma(
 
 # Example: Query the database
 query = "What is new societal expectations"
+# using similarity search - fetches similar text data
 results = vectordb.similarity_search(query, k=3)
 
 #results = await vector_store.asimilarity_search(query,k=3)
@@ -128,6 +129,27 @@ for result in results:
 
 print("==================================abc==============================================")
 print(passage)
+
+### using retrievers - fetches most relevant data
+#https://python.langchain.com/api_reference/chroma/vectorstores/langchain_chroma.vectorstores.Chroma.html#langchain_chroma.vectorstores.Chroma.as_retriever
+retriever = vectordb.as_retriever(
+    search_type="mmr", search_kwargs={"k": 3, "fetch_k": 5}
+)
+
+results = retriever.invoke(query)
+
+print("retriever??????????????????????????????????abc?????????????????????????????????????????????????????????????")
+# Display results
+passage = ""
+for result in results:
+    print("retriever********************************abc****************************************************")
+    print(result.page_content)
+    passage = passage + result.page_content
+
+print("retriever==================================abc==============================================")
+print(passage)
+
+
 
 from langchain_openai import ChatOpenAI
 from langchain_core.prompts import ChatPromptTemplate
@@ -167,4 +189,4 @@ prompt = tagging_prompt.invoke({"passage": passage, "input": query})
 
 response = model.invoke(prompt)
 print("==========================summary response========abc==============================================")
-print(response)
+print(response.dict())
