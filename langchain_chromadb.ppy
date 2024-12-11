@@ -1,0 +1,76 @@
+#from langchain.document_loaders import PyPDFLoader
+from langchain.text_splitter import RecursiveCharacterTextSplitter
+#from langchain.vectorstores import Chroma
+from chromadb.config import Settings
+from langchain_community.document_loaders import PyPDFLoader
+from langchain_community.vectorstores import Chroma
+#from langchain_community.embeddings import LocalEmbeddings 
+
+# Load the PDF
+pdf_url = "/Users/satish/work/test.pdf"
+loader = PyPDFLoader(pdf_url)
+documents = loader.load()
+
+# Split the text into smaller chunks
+text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=300)
+texts = text_splitter.split_documents(documents)
+
+
+print(type(texts))
+
+ids = []
+print("================================================================================")
+for text in texts:
+    print("************************************************************************************")
+    print(text.page_content)
+    ids.append(text.page_content[:5])
+
+texts_str = [text.page_content for text in texts]
+ids = [text[:5] for text in texts_str]
+
+print(len(texts))
+
+import chromadb
+chroma_client = chromadb.HttpClient(host='localhost', port=8000)
+
+# as part collection creation, we can pass embedding function like openai, and should pass same embedding function as part of get collection as well.
+# collection = client.create_collection(name="my_collection", embedding_function=emb_fn)
+# https://docs.trychroma.com/guides
+collection = chroma_client.get_or_create_collection(name="my_collection") 
+
+collection.add(
+    documents=texts_str,
+    #metadatas= [{},{}]
+    ids=ids #["1", "2"]
+)
+print("???????????????????????????????????????????????????????????????????????????????????????????????")
+results = collection.query(
+    query_texts=["does satish know akka framework?"], # Chroma will embed this for you
+    n_results=2 # how many results to return
+)
+print(results)
+
+# Define Chroma server settings for client-server architecture
+"""chroma_settings = Settings(
+    chroma_api_impl="rest",  # Use REST API for Chroma
+    chroma_server_host="localhost",  # Chroma server host
+    chroma_server_http_port="8000"  # Chroma server port
+)
+
+# Store embeddings in ChromaDB
+vectordb = Chroma(
+    collection_name="climate_change",  # Unique collection name
+  #  documents=texts,
+   # embedding_function=LocalEmbeddings(),  # Use ChromaDB's native embeddings
+    settings=chroma_settings
+)
+
+vectordb.add_documents(texts)
+# Query the vector database (example query)
+query = "What is CCUS technology?"
+results = vectordb.similarity_search(query, k=3)
+
+# Display the results
+for result in results:
+    print(result.page_content)
+"""
